@@ -11,7 +11,9 @@ define('DB_USER',    '{{DB_USER}}');
 define('DB_PASS',    '{{DB_PASS}}');
 define('DB_CHARSET', 'utf8mb4');
 
-define('SITE_URL',   '{{SITE_URL}}');
+define('SITE_URL',         '{{SITE_URL}}');
+define('SITE_NAME',        '{{SITE_NAME}}');
+define('SITE_DESCRIPTION', '{{SITE_DESCRIPTION}}');
 define('UPLOAD_DIR', __DIR__ . '/uploads/');
 define('UPLOAD_URL', '{{SITE_URL}}/cms/uploads/');
 

@@ -48,22 +48,26 @@ function try_connect(string $host, string $name, string $user, string $pass): PD
     );
 }
 
-function make_config(string $host, string $name, string $user, string $pass, string $siteUrl): string
-{
+function make_config(
+    string $host, string $name, string $user, string $pass,
+    string $siteUrl, string $siteName, string $siteDesc
+): string {
     // シングルクォートをエスケープ（定数値に埋め込むため）
     $escape = fn(string $v): string => str_replace("'", "\\'", $v);
 
-    $host    = $escape($host);
-    $name    = $escape($name);
-    $user    = $escape($user);
-    $pass    = $escape($pass);
-    $siteUrl = rtrim($escape($siteUrl), '/');
+    $host     = $escape($host);
+    $name     = $escape($name);
+    $user     = $escape($user);
+    $pass     = $escape($pass);
+    $siteUrl  = rtrim($escape($siteUrl), '/');
+    $siteName = $escape($siteName);
+    $siteDesc = $escape($siteDesc);
 
     // config.sample.php のプレースホルダーを置換して返す
     $template = file_get_contents(__DIR__ . '/config.sample.php');
     $template = str_replace(
-        ['{{DB_HOST}}', '{{DB_NAME}}', '{{DB_USER}}', '{{DB_PASS}}', '{{SITE_URL}}'],
-        [$host, $name, $user, $pass, $siteUrl],
+        ['{{DB_HOST}}', '{{DB_NAME}}', '{{DB_USER}}', '{{DB_PASS}}', '{{SITE_URL}}', '{{SITE_NAME}}', '{{SITE_DESCRIPTION}}'],
+        [$host, $name, $user, $pass, $siteUrl, $siteName, $siteDesc],
         $template
     );
     return $template;
@@ -113,7 +117,7 @@ function create_tables(PDO $pdo): void
         "CREATE TABLE IF NOT EXISTS post_sections (
             id         INT AUTO_INCREMENT PRIMARY KEY,
             post_id    INT NOT NULL,
-            heading    VARCHAR(255),
+            title      VARCHAR(255),
             body       TEXT,
             image_url  VARCHAR(255),
             sort_order INT DEFAULT 0,
@@ -141,20 +145,22 @@ function create_tables(PDO $pdo): void
 
 // --- Step 2: DB 接続テスト → config.php 生成 → テーブル作成 ---
 if ($step === '2' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $db_host  = trim($_POST['db_host']  ?? 'localhost');
-    $db_name  = trim($_POST['db_name']  ?? '');
-    $db_user  = trim($_POST['db_user']  ?? '');
-    $db_pass  = $_POST['db_pass']       ?? '';
-    $site_url = rtrim(trim($_POST['site_url'] ?? ''), '/');
+    $db_host   = trim($_POST['db_host']   ?? 'localhost');
+    $db_name   = trim($_POST['db_name']   ?? '');
+    $db_user   = trim($_POST['db_user']   ?? '');
+    $db_pass   = $_POST['db_pass']        ?? '';
+    $site_url  = rtrim(trim($_POST['site_url']  ?? ''), '/');
+    $site_name = trim($_POST['site_name'] ?? 'My Site');
+    $site_desc = trim($_POST['site_desc'] ?? '');
 
-    if ($db_name === '' || $db_user === '' || $site_url === '') {
-        $error = 'DB名・DBユーザー名・サイトURLは必須です。';
+    if ($db_name === '' || $db_user === '' || $site_url === '' || $site_name === '') {
+        $error = 'DB名・DBユーザー名・サイトURL・サイト名は必須です。';
     } else {
         try {
             $pdo = try_connect($db_host, $db_name, $db_user, $db_pass);
             create_tables($pdo);
 
-            $content = make_config($db_host, $db_name, $db_user, $db_pass, $site_url);
+            $content = make_config($db_host, $db_name, $db_user, $db_pass, $site_url, $site_name, $site_desc);
             if (file_put_contents($configFile, $content) === false) {
                 $error = 'config.php の書き込みに失敗しました。フォルダの書き込み権限を確認してください（chmod 755）。';
             } else {
@@ -572,6 +578,19 @@ $currentStepNum = match($step) {
                        value="<?= esc($_POST['site_url'] ?? '') ?>"
                        placeholder="例: http://localhost:8888/myportfolio">
                 <p class="hint">末尾のスラッシュは不要です。本番なら <code>https://example.com</code></p>
+            </div>
+
+            <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;">
+
+            <div class="field">
+                <label>サイト名</label>
+                <input type="text" name="site_name" required
+                       value="<?= esc($_POST['site_name'] ?? 'My Site') ?>">
+            </div>
+            <div class="field">
+                <label>サイト概要 <span class="optional">（任意・OGP に使用）</span></label>
+                <input type="text" name="site_desc"
+                       value="<?= esc($_POST['site_desc'] ?? '') ?>">
             </div>
 
             <button type="submit" class="btn btn-full">接続テスト &amp; 次へ →</button>
