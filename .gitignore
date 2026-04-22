@@ -1,6 +1,13 @@
 # 設定ファイル（インストール後に自動生成されるため除外）
 cms/config.php
 
+# SQLite データベースファイル（ユーザーデータはGit管理外）
+cms/database/*.db
+cms/database/*.db-shm
+cms/database/*.db-wal
+!cms/database/.gitkeep
+!cms/database/.htaccess
+
 # アップロードファイル（バイナリはGit管理外）
 cms/uploads/*
 !cms/uploads/.gitkeep

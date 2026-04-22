@@ -1,40 +1,30 @@
 <?php
 // ===================================================
-//  データベース接続設定テンプレート
-//  setup.php が自動で config.php を生成するため
+//  設定ファイルテンプレート（setup.php が自動生成）
 //  このファイルは直接編集しないでください。
 // ===================================================
 
-define('DB_HOST',    '{{DB_HOST}}');
-define('DB_NAME',    '{{DB_NAME}}');
-define('DB_USER',    '{{DB_USER}}');
-define('DB_PASS',    '{{DB_PASS}}');
-define('DB_CHARSET', 'utf8mb4');
-
-define('SITE_URL',         '{{SITE_URL}}');
-define('SITE_NAME',        '{{SITE_NAME}}');
-define('SITE_DESCRIPTION', '{{SITE_DESCRIPTION}}');
-define('UPLOAD_DIR', __DIR__ . '/uploads/');
-define('UPLOAD_URL', '{{SITE_URL}}/cms/uploads/');
+define('DB_PATH',         __DIR__ . '/database/tako.db');
+define('SITE_URL',        '{{SITE_URL}}');
+define('SITE_NAME',       '{{SITE_NAME}}');
+define('SITE_DESCRIPTION','{{SITE_DESCRIPTION}}');
+define('UPLOAD_DIR',      __DIR__ . '/uploads/');
+define('UPLOAD_URL',      '{{SITE_URL}}/cms/uploads/');
 
 function db(): PDO
 {
     static $pdo = null;
-
     if ($pdo === null) {
-        $dsn     = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
-        $options = [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES   => false,
-        ];
         try {
-            $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+            $pdo = new PDO('sqlite:' . DB_PATH, null, null, [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]);
+            $pdo->exec('PRAGMA foreign_keys = ON');
         } catch (PDOException $e) {
             exit('DB接続エラー: ' . $e->getMessage());
         }
     }
-
     return $pdo;
 }
 

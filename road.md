@@ -9,6 +9,8 @@
 | Phase 2 | セキュリティ強化 | ✅ 完了 |
 | Phase 3 | フロントエンド（公開ページ） | ✅ 完了 |
 | Phase 4 | オープンソース整備 | ✅ 完了 |
+| Phase 5 | SQLite 移行（ファイル置くだけインストール） | ✅ 完了 |
+| Phase 6 | パスワード再設定メール機能 | ✅ 完了 |
 
 ---
 
@@ -103,6 +105,35 @@
 
 - [ ] `.htaccess` によるパーマリンク（`/posts/slug` 形式）— 任意
 - [ ] 空の `index.html` を削除（Apache が `index.php` より優先する場合の対処）
+
+---
+
+## Phase 5 — SQLite 移行（ファイル置くだけインストール）
+
+### 完了タスク
+
+#### 2026-04-22
+
+- [x] DB を MySQL → SQLite に変更（`pdo_sqlite` 使用）
+- [x] `cms/config.php` を SQLite 接続に全面書き換え（DB_HOST/NAME/USER/PASS 廃止）
+- [x] `cms/config.sample.php` を同期
+- [x] `cms/setup.php` を 2 ステップに簡略化（DB 設定ステップ削除）
+  - Step 1: 動作環境チェック（pdo_sqlite・database/ 書き込み確認）
+  - Step 2: サイト設定 + 管理者登録 → DB 自動作成・config.php 自動生成
+- [x] `cms/database/` ディレクトリ作成
+- [x] `cms/database/.htaccess` で DB ファイルへの Web アクセスを遮断
+- [x] `.gitignore` に `*.db` / `*.db-shm` / `*.db-wal` を追加
+- [x] `cms/admin/post-edit.php` の `updated_at` を `datetime('now')` で明示更新
+  （SQLite は `ON UPDATE CURRENT_TIMESTAMP` 非対応のため）
+
+### インストール手順（変更後）
+
+```
+① ファイルをサーバーへアップロード
+② ブラウザで cms/setup.php を開く
+③ サイト名・URL・管理者情報を入力して送信
+→ 完了（DB は自動作成）
+```
 
 ---
 

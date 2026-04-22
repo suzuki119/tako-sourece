@@ -111,6 +111,7 @@ $currentCategoryId = $post_category_id ? $post_category_id[0]['category_id'] : n
         <a class="button" href="<?= SITE_URL ?>/cms/admin/post-new.php">+ 新規作成</a>
         <a class="button" href="<?= SITE_URL ?>/cms/admin/categories.php">+ カテゴリー</a>
         <a class="button" href="<?= SITE_URL ?>/cms/admin/skill.php">+ スキル</a>
+        <a class="button" href="<?= SITE_URL ?>/cms/admin/settings.php" style="background:#555;">⚙ 設定</a>
         <a href="<?= SITE_URL ?>/index.php" class="back-link">
             Back to Portfolio
         </a>

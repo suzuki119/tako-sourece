@@ -7,6 +7,19 @@
 
 ## [Unreleased]
 
+### Added
+
+- パスワード再設定メール機能
+  - `cms/forgot.php` — メールアドレス入力 → ユーザー名 + 再設定リンクをメール送信
+  - `cms/reset.php` — トークン検証 → 新パスワード設定（有効期限1時間）
+  - `password_resets` テーブルを初回アクセス時に自動作成（マイグレーション不要）
+  - `cms/login.php` に「パスワードをお忘れの方」リンクを追加
+- SQLite への移行（ファイルを置くだけでインストール完了）
+  - MySQL 依存を完全に排除
+  - `cms/setup.php` を 2 ステップに簡略化（DB 設定ステップ削除）
+  - `cms/database/` に SQLite ファイルを自動生成
+  - `cms/database/.htaccess` で DB ファイルへの Web アクセスを遮断
+
 ---
 
 ## [0.1.0] - 2026-04-22

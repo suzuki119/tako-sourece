@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($error === '') {
             // ① 記事を INSERT して発行されたIDを取得
             $stmt = $pdo->prepare(
-                'INSERT INTO posts (title, thumbnail, status, author_id, period, type, external_url, tags)
+                'INSERT INTO posts (title, thumbnail, status, author_id, period, "type", external_url, tags)
                  VALUES (:title, :thumbnail, :status, :author_id, :period, :type, :external_url, :tags)'
             );
             $stmt->execute([

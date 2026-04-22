@@ -85,58 +85,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($error === '') {
-            // posts テーブルを更新
-            $stmt = $pdo->prepare(
-                'UPDATE posts SET
-                    title = :title, thumbnail = :thumbnail, status = :status,
-                    period = :period, type = :type,
-                    external_url = :external_url, tags = :tags
-                 WHERE id = :id'
-            );
-            $stmt->execute([
-                ':title'        => $title,
-                ':thumbnail'    => $thumbnail,
-                ':status'       => $status,
-                ':period'       => $period,
-                ':type'         => $type,
-                ':external_url' => $external_url,
-                ':tags'         => $tags,
-                ':id'           => $id,
-            ]);
-
-            // カテゴリの紐付けを更新（全削除 → 入れ直し）
-            $pc_stmt = $pdo->prepare('DELETE FROM post_categories WHERE post_id = :post_id');
-            $pc_stmt->execute([':post_id' => $id]);
-
-            if (!empty($category_id)) {
-                $pc_stmt = $pdo->prepare('INSERT INTO post_categories (post_id, category_id) VALUES (:post_id, :category_id)');
-                $pc_stmt->execute([':post_id' => $id, ':category_id' => $category_id]);
-            }
-
-            // セクションの更新（全削除 → 入れ直し）
-            $pdo->prepare('DELETE FROM post_sections WHERE post_id = :post_id')
-                ->execute([':post_id' => $id]);
-
-            // name="section_title[]" / name="section_body[]" でフォームから配列として受け取る
-            $section_titles = $_POST['section_title'] ?? []; // [組み込み] ??=nullなら空配列
-            $section_bodies = $_POST['section_body']  ?? [];
-
-            foreach ($section_titles as $i => $t) {
-                if (trim($t) === '') continue; // タイトルが空のセクションはスキップ（削除ボタンを押さず空にしたものも対応）
-                $s_stmt = $pdo->prepare(
-                    'INSERT INTO post_sections (post_id, sort_order, title, body)
-                     VALUES (:post_id, :sort_order, :title, :body)'
+            try {
+                // posts テーブルを更新
+                $stmt = $pdo->prepare(
+                    "UPDATE posts SET
+                        title = :title, thumbnail = :thumbnail, status = :status,
+                        period = :period, \"type\" = :type,
+                        external_url = :external_url, tags = :tags,
+                        updated_at = datetime('now')
+                     WHERE id = :id"
                 );
-                $s_stmt->execute([
-                    ':post_id'    => $id,
-                    ':sort_order' => $i,
-                    ':title'      => trim($t),
-                    ':body'       => trim($section_bodies[$i] ?? ''),
+                $stmt->execute([
+                    ':title'        => $title,
+                    ':thumbnail'    => $thumbnail,
+                    ':status'       => $status,
+                    ':period'       => $period,
+                    ':type'         => $type,
+                    ':external_url' => $external_url,
+                    ':tags'         => $tags,
+                    ':id'           => $id,
                 ]);
-            }
 
-            header('Location: ' . SITE_URL . '/cms/admin/index.php');
-            exit;
+                // カテゴリの紐付けを更新（全削除 → 入れ直し）
+                $pc_stmt = $pdo->prepare('DELETE FROM post_categories WHERE post_id = :post_id');
+                $pc_stmt->execute([':post_id' => $id]);
+
+                if (!empty($category_id)) {
+                    $pc_stmt = $pdo->prepare('INSERT INTO post_categories (post_id, category_id) VALUES (:post_id, :category_id)');
+                    $pc_stmt->execute([':post_id' => $id, ':category_id' => $category_id]);
+                }
+
+                // セクションの更新（全削除 → 入れ直し）
+                $pdo->prepare('DELETE FROM post_sections WHERE post_id = :post_id')
+                    ->execute([':post_id' => $id]);
+
+                $section_titles = $_POST['section_title'] ?? [];
+                $section_bodies = $_POST['section_body']  ?? [];
+
+                foreach ($section_titles as $i => $t) {
+                    if (trim($t) === '') continue;
+                    $s_stmt = $pdo->prepare(
+                        'INSERT INTO post_sections (post_id, sort_order, title, body)
+                         VALUES (:post_id, :sort_order, :title, :body)'
+                    );
+                    $s_stmt->execute([
+                        ':post_id'    => $id,
+                        ':sort_order' => $i,
+                        ':title'      => trim($t),
+                        ':body'       => trim($section_bodies[$i] ?? ''),
+                    ]);
+                }
+
+                header('Location: ' . SITE_URL . '/cms/admin/index.php');
+                exit;
+
+            } catch (PDOException $e) {
+                $error = 'DB エラー: ' . $e->getMessage();
+            }
         }
     }
 

@@ -1,0 +1,3 @@
+# SQLite データベースファイルへの Web アクセスを全て拒否する
+Order deny,allow
+Deny from all
